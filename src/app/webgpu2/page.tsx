@@ -25,17 +25,16 @@ fn vertexMain(input: VertexInput) -> VertexOutput {
 
 @group(0) @binding(0) var<uniform> time: f32;
 @group(0) @binding(1) var<uniform> resolution: vec2f;
+@group(0) @binding(2) var mySampler: sampler;
+@group(0) @binding(3) var myTexture: texture_external;
 
 @fragment
 fn fragmentMain(input: FragmentInput) -> @location(0) vec4f {
-    var uv = input.clipSpaceCoord.xy / 2;
-    uv += 0.5; // uv coords from 0 to 1 like shader toy default
-    let aspectRatio = resolution.x / resolution.y;
-    var col = vec4f(0);
-
-    uv.x *= aspectRatio;
-    col += vec4f(uv, 0.5 + 0.5 * sin(time), 1);
-    return col;
+    var uv = input.clipSpaceCoord.xy / 2.0 + 0.5; // Normalized UV coordinates
+    uv.x = 1.0 - uv.x;
+    uv.y = 1.0 - uv.y;
+    let texColor = textureSampleBaseClampToEdge(myTexture, mySampler, uv);
+    return texColor;
 }
 `
 
@@ -78,6 +77,13 @@ const WebGPUPage = () => {
         console.error("No device")
         throw new Error("Could not initialize webGPU canvas, no device")
       }
+
+      const sampler = device.createSampler({
+        magFilter: "linear", // Specifies the filtering method when the pixel being textured maps to an area greater than one texel.
+        minFilter: "linear", // Specifies the filtering method when the pixel being textured maps to an area less than or equal to one texel.
+        addressModeU: "clamp-to-edge", // Handling of texture coordinates outside the [0, 1] range.
+        addressModeV: "clamp-to-edge",
+      })
 
       const format = navigator.gpu.getPreferredCanvasFormat()
       context.configure({
@@ -132,6 +138,14 @@ const WebGPUPage = () => {
       const resolutionValue = new Float32Array([window.innerWidth, window.innerHeight]) // Example conversion
       device.queue.writeBuffer(resolutionBuffer, 0, resolutionValue)
 
+      const samplerEntry: GPUBindGroupLayoutEntry = {
+        binding: 2,
+        visibility: GPUShaderStage.FRAGMENT,
+        sampler: {
+          type: "filtering",
+        },
+      }
+
       const bindGroupLayout = device.createBindGroupLayout({
         label: "Bind Group Layout",
         entries: [
@@ -145,20 +159,11 @@ const WebGPUPage = () => {
             visibility: GPUShaderStage.FRAGMENT,
             buffer: {}, // grid uniform buffer ( no type key defaults to type: "uniform" )
           },
-        ],
-      })
-
-      const bindGroup = device.createBindGroup({
-        label: "Bind Group",
-        layout: bindGroupLayout,
-        entries: [
+          samplerEntry,
           {
-            binding: 0,
-            resource: { buffer: timeBuffer },
-          },
-          {
-            binding: 1,
-            resource: { buffer: resolutionBuffer },
+            binding: 3,
+            visibility: GPUShaderStage.FRAGMENT,
+            externalTexture: {},
           },
         ],
       })
@@ -171,6 +176,47 @@ const WebGPUPage = () => {
       const startTime = Date.now()
       const updateFrame = () => {
         currRequestFrame = requestAnimationFrame(updateFrame)
+        if (!videoRef.current || videoRef.current.readyState < 2) {
+          return
+        }
+
+        let externalTexture
+        try {
+          externalTexture = device.importExternalTexture({
+            source: videoRef.current,
+          })
+        } catch (e) {
+          return
+        }
+
+        const bindGroup = device.createBindGroup({
+          layout: bindGroupLayout,
+          entries: [
+            {
+              binding: 0,
+              resource: {
+                buffer: timeBuffer,
+              },
+            },
+            {
+              binding: 1,
+              resource: {
+                buffer: resolutionBuffer,
+              },
+            },
+            {
+              binding: 2,
+              resource: sampler,
+            },
+            {
+              binding: 3,
+              resource: device.importExternalTexture({
+                source: videoRef.current,
+              }),
+            },
+          ],
+        })
+
         const time = (Date.now() - startTime) / 1000
         device.queue.writeBuffer(timeBuffer, 0, new Float32Array([time]))
         const resolutionValue = new Float32Array([window.innerWidth, window.innerHeight])
@@ -245,11 +291,13 @@ const WebGPUPage = () => {
     }
   }, [])
 
+  const vidoeStyle = { width: "640px", height: "480px", margin: "20px" }
+
   return (
     <div>
       <h1>WebGPU with Webcam and Greyscale Filter</h1>
-      <video ref={videoRef} autoPlay playsInline muted></video>
-      <canvas ref={canvasRef}></canvas>
+      <video style={vidoeStyle} ref={videoRef} autoPlay playsInline muted></video>
+      <canvas style={vidoeStyle} ref={canvasRef}></canvas>
     </div>
   )
 }
