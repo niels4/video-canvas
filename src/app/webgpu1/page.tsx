@@ -1,12 +1,17 @@
 "use client"
 import { useRef, useEffect } from "react"
 
-type CanvasState = {
-  device: GPUDevice
-  canvas: HTMLCanvasElement
-  context: GPUCanvasContext
-  format: GPUTextureFormat
+const initialWgslCode = `
+@vertex
+fn vertexMain(@location(0) pos: vec2f) -> @builtin(position) vec4f {
+return vec4f(pos, 0, 1);
 }
+
+@fragment
+fn fragmentMain() -> @location(0) vec4f {
+return vec4f(0.2, 0.5, 0.8, 1);
+}
+`
 
 const WebGPUPage = () => {
   const videoRef = useRef<HTMLVideoElement>(null)
@@ -51,6 +56,89 @@ const WebGPUPage = () => {
       context.configure({
         device,
         format,
+      })
+
+      // prettier-ignore
+      const verticesArray = [
+        // X, Y
+        // bottom right triangle
+        -1, -1, // left bottom
+        1, -1, // right bottom
+        1, 1, // right top
+
+        // top left triangle
+        -1, -1, // left bottom
+        1, 1, // right top
+        -1, 1, // left top
+      ]
+      const vertices = new Float32Array(verticesArray)
+
+      const vertexBuffer = device.createBuffer({
+        label: "One Square vertices",
+        size: vertices.byteLength,
+        usage: GPUBufferUsage.VERTEX | GPUBufferUsage.COPY_DST,
+      })
+      device.queue.writeBuffer(vertexBuffer, /*bufferOffset*/ 0, vertices)
+
+      const vertexBufferLayout = {
+        arrayStride: 8,
+        attributes: [
+          {
+            format: "float32x2",
+            offset: 0,
+            shaderLocation: 0,
+          },
+        ],
+      }
+
+      const timeBuffer = device.createBuffer({
+        size: 4, // float32 size
+        usage: GPUBufferUsage.UNIFORM | GPUBufferUsage.COPY_DST,
+      })
+      const timeValue = new Float32Array([0]) // Example conversion
+      device.queue.writeBuffer(timeBuffer, 0, timeValue)
+
+      const resolutionBuffer = device.createBuffer({
+        size: 8, // float32 size * 2
+        usage: GPUBufferUsage.UNIFORM | GPUBufferUsage.COPY_DST,
+      })
+      const resolutionValue = new Float32Array([window.innerWidth, window.innerHeight]) // Example conversion
+      device.queue.writeBuffer(resolutionBuffer, 0, resolutionValue)
+
+      const bindGroupLayout = device.createBindGroupLayout({
+        label: "Bind Group Layout",
+        entries: [
+          {
+            binding: 0,
+            visibility: GPUShaderStage.FRAGMENT,
+            buffer: {}, // grid uniform buffer ( no type key defaults to type: "uniform" )
+          },
+          {
+            binding: 1,
+            visibility: GPUShaderStage.FRAGMENT,
+            buffer: {}, // grid uniform buffer ( no type key defaults to type: "uniform" )
+          },
+        ],
+      })
+
+      const bindGroup = device.createBindGroup({
+        label: "Bind Group",
+        layout: bindGroupLayout,
+        entries: [
+          {
+            binding: 0,
+            resource: { buffer: timeBuffer },
+          },
+          {
+            binding: 1,
+            resource: { buffer: resolutionBuffer },
+          },
+        ],
+      })
+
+      const shaderModule = device.createShaderModule({
+        label: "Simple shader module",
+        code: initialWgslCode,
       })
 
       return { device, canvas, context, format }
