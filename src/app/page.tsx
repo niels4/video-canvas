@@ -11,6 +11,8 @@ export default function Home() {
       <Link href="webgpu2">webGPU 2</Link>
       <br />
       <Link href="greyscale">greyscale</Link>
+      <br />
+      <Link href="edge-detect">Edge Detection</Link>
     </main>
   )
 }
