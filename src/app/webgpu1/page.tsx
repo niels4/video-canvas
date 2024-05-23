@@ -1,15 +1,53 @@
 "use client"
 import { useRef, useEffect } from "react"
 
+// const initialWgslCode = `
+// @vertex
+// fn vertexMain(@location(0) pos: vec2f) -> @builtin(position) vec4f {
+// return vec4f(pos, 0, 1);
+// }
+//
+// @fragment
+// fn fragmentMain() -> @location(0) vec4f {
+// return vec4f(0.2, 0.5, 0.8, 1);
+// }
+// `
+
 const initialWgslCode = `
-@vertex
-fn vertexMain(@location(0) pos: vec2f) -> @builtin(position) vec4f {
-return vec4f(pos, 0, 1);
+struct VertexInput {
+    @location(0) pos: vec2f,
 }
 
+struct VertexOutput {
+    @builtin(position) position: vec4f,
+    @location(1) clipSpaceCoord: vec2f,
+}
+
+struct FragmentInput {
+    @location(1) clipSpaceCoord: vec2f,
+}
+
+@vertex
+fn vertexMain(input: VertexInput) -> VertexOutput {
+    var output: VertexOutput;
+    output.position = vec4f(input.pos, 0.0, 1.0);
+    output.clipSpaceCoord = input.pos;
+    return output;
+}
+
+@group(0) @binding(0) var<uniform> time: f32;
+@group(0) @binding(1) var<uniform> resolution: vec2f;
+
 @fragment
-fn fragmentMain() -> @location(0) vec4f {
-return vec4f(0.2, 0.5, 0.8, 1);
+fn fragmentMain(input: FragmentInput) -> @location(0) vec4f {
+    var uv = input.clipSpaceCoord.xy / 2;
+    uv += 0.5; // uv coords from 0 to 1 like shader toy default
+    let aspectRatio = resolution.x / resolution.y;
+    var col = vec4f(0);
+
+    uv.x *= aspectRatio;
+    col += vec4f(uv, 0.5 + 0.5 * sin(time), 1);
+    return col;
 }
 `
 
@@ -19,6 +57,7 @@ const WebGPUPage = () => {
   const canvasInitialized = useRef({ initialized: false })
 
   useEffect(() => {
+    let currRequestFrame: number
     if (canvasInitialized.current.initialized) {
       return
     }
@@ -80,15 +119,15 @@ const WebGPUPage = () => {
       })
       device.queue.writeBuffer(vertexBuffer, /*bufferOffset*/ 0, vertices)
 
-      const vertexBufferLayout = {
+      const attributeDescriptor: GPUVertexAttribute = {
+        format: "float32x2",
+        offset: 0,
+        shaderLocation: 0,
+      }
+
+      const vertexBufferLayout: GPUVertexBufferLayout = {
         arrayStride: 8,
-        attributes: [
-          {
-            format: "float32x2",
-            offset: 0,
-            shaderLocation: 0,
-          },
-        ],
+        attributes: [attributeDescriptor],
       }
 
       const timeBuffer = device.createBuffer({
@@ -141,6 +180,59 @@ const WebGPUPage = () => {
         code: initialWgslCode,
       })
 
+      const startTime = Date.now()
+      const updateFrame = () => {
+        currRequestFrame = requestAnimationFrame(updateFrame)
+        const time = (Date.now() - startTime) / 1000
+        device.queue.writeBuffer(timeBuffer, 0, new Float32Array([time]))
+        const resolutionValue = new Float32Array([window.innerWidth, window.innerHeight])
+        device.queue.writeBuffer(resolutionBuffer, 0, resolutionValue)
+
+        const pipelineLayout = device.createPipelineLayout({
+          label: "Cell Pipeline Layout",
+          bindGroupLayouts: [bindGroupLayout],
+        })
+
+        const pipeline = device.createRenderPipeline({
+          label: "Simple shader pipeline",
+          layout: pipelineLayout,
+          vertex: {
+            module: shaderModule,
+            entryPoint: "vertexMain",
+            buffers: [vertexBufferLayout],
+          },
+          fragment: {
+            module: shaderModule,
+            entryPoint: "fragmentMain",
+            targets: [
+              {
+                format: format,
+              },
+            ],
+          },
+        })
+
+        const encoder = device.createCommandEncoder()
+
+        const colorAttachment: GPURenderPassColorAttachment = {
+          view: context.getCurrentTexture().createView(),
+          loadOp: "clear",
+          storeOp: "store",
+        }
+
+        const pass = encoder.beginRenderPass({
+          colorAttachments: [colorAttachment],
+        })
+        pass.setPipeline(pipeline)
+        pass.setVertexBuffer(0, vertexBuffer)
+        pass.setBindGroup(0, bindGroup)
+        pass.draw(vertices.length / 2)
+        pass.end()
+        device.queue.submit([encoder.finish()])
+      }
+
+      updateFrame()
+
       return { device, canvas, context, format }
     }
 
@@ -158,6 +250,11 @@ const WebGPUPage = () => {
 
     initializeWebGPU()
     setupWebcam()
+    return () => {
+      if (currRequestFrame) {
+        cancelAnimationFrame(currRequestFrame)
+      }
+    }
   }, [])
 
   return (
