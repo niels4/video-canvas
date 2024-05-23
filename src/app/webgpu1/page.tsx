@@ -1,5 +1,6 @@
 "use client"
 import { useRef, useEffect } from "react"
+import Link from "next/link"
 
 const initialWgslCode = `
 struct VertexInput {
@@ -247,7 +248,8 @@ const WebGPUPage = () => {
 
   return (
     <div>
-      <h1>WebGPU with Webcam and Greyscale Filter</h1>
+      <h1>WebGPU with Webcam</h1>
+      <Link href="/">Back to home</Link>
       <video ref={videoRef} autoPlay playsInline muted></video>
       <canvas ref={canvasRef}></canvas>
     </div>

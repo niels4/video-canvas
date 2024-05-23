@@ -7,6 +7,10 @@ export default function Home() {
       <Link href="webcam1">webcam 1</Link>
       <br />
       <Link href="webgpu1">webGPU 1</Link>
+      <br />
+      <Link href="webgpu2">webGPU 2</Link>
+      <br />
+      <Link href="greyscale">greyscale</Link>
     </main>
   )
 }

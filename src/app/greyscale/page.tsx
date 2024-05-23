@@ -35,7 +35,12 @@ fn fragmentMain(input: FragmentInput) -> @location(0) vec4f {
     uv.x = 1.0 - uv.x;
     uv.y = 1.0 - uv.y;
     let texColor = textureSampleBaseClampToEdge(myTexture, mySampler, uv);
-    return texColor;
+
+    // Calculate the luminance from the RGB color components
+    let luminance = 0.299 * texColor.r + 0.587 * texColor.g + 0.114 * texColor.b;
+
+    // Create a greyscale color by setting all color components to the luminance value
+    return vec4f(luminance, luminance, luminance, 1.0);
 }
 `
 
@@ -297,7 +302,7 @@ const WebGPUPage = () => {
   return (
     <div>
       <Link href="/">Back to home</Link>
-      <h1>WebGPU with Webcam</h1>
+      <h1>WebGPU with Webcam and Greyscale Filter</h1>
       <video style={vidoeStyle} ref={videoRef} autoPlay playsInline muted></video>
       <canvas style={vidoeStyle} ref={canvasRef}></canvas>
     </div>
