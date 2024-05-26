@@ -135,7 +135,7 @@ async function initWebGPU({ canvasRef, videoRef, wgsl, frameRef }: InitWebGpuPar
     ],
   })
 
-  const shaderModule = device.createShaderModule({
+  let shaderModule = device.createShaderModule({
     label: "Simple shader module",
     code: wgsl,
   })
@@ -235,8 +235,12 @@ async function initWebGPU({ canvasRef, videoRef, wgsl, frameRef }: InitWebGpuPar
 
   updateFrame()
 
-  const updateWgsl = (wgsl: WgslCode) => {
-    console.log("updated wgslcode", wgsl)
+  const updateWgsl = (newWgsl: WgslCode) => {
+    shaderModule = device.createShaderModule({
+      label: "Simple shader module",
+      code: newWgsl,
+    })
+    updateFrame()
   }
 
   return updateWgsl

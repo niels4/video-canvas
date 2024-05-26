@@ -8,7 +8,7 @@ const WebGpuCamera = () => {
   const videoRef = useRef<HTMLVideoElement>(null)
   const canvasRef = useRef<HTMLCanvasElement>(null)
 
-  useWebGpuCam({ videoRef, canvasRef, wgsl: shaders.passthrough })
+  useWebGpuCam({ videoRef, canvasRef, wgsl: shaders.edgeDetect })
 
   const vidoeStyle = { width: "640px", height: "480px", margin: "20px" }
 
