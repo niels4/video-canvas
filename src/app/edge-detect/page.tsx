@@ -1,5 +1,5 @@
 "use client"
-import { useRef, useEffect } from "react"
+import { useRef, useEffect, CSSProperties } from "react"
 import Link from "next/link"
 
 const initialWgslCode = `
@@ -307,14 +307,23 @@ const WebGPUPage = () => {
     }
   }, [])
 
-  const vidoeStyle = { width: "640px", height: "480px", margin: "20px" }
+  const videoStyle: CSSProperties = {
+    width: "640px",
+    height: "480px",
+  }
 
   return (
     <div>
       <Link href="/">Back to home</Link>
-      <h1>WebGPU with Webcam and Greyscale Filter</h1>
-      <video style={vidoeStyle} ref={videoRef} autoPlay playsInline muted></video>
-      <canvas style={vidoeStyle} ref={canvasRef}></canvas>
+      <h1>WebGPU with Webcam and edge detection</h1>
+      <video
+        style={{ visibility: "hidden", position: "absolute" }}
+        ref={videoRef}
+        autoPlay
+        playsInline
+        muted
+      ></video>
+      <canvas style={videoStyle} ref={canvasRef}></canvas>
     </div>
   )
 }
