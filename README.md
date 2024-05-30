@@ -5,6 +5,12 @@
 This project was created to be a short tech demo to explore real-time video processing in the browser. Normally I wouldn't use Next.js for a client side application with such a small scope, but I wanted to include some code samples that demonstrate my
 ability to work with Next.js and Typescript. The tool captures video from the user's webcam and applies various shader effects in real-time. The available effects include passthrough, greyscale, sepia, and edge detection.
 
+## Published Example
+
+You can view a running example published at [https://niels4.dev/video-canvas](https://niels4.dev/video-canvas)
+
+None of the data from your webcam is ever transmitted or saved. The video processing takes place entirely in your browser. The webcamera is used as a video source to demonstrate that the video processing is happening in real-time.
+
 ## Features
 
 - Real-time video capture from the user's webcam.
