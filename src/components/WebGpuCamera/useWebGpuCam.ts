@@ -1,8 +1,8 @@
 import { RefObject, useEffect, useRef } from "react"
 
-type WgslCode = string
+export type WgslCode = string
 
-type UseWebGpuParams = {
+export type UseWebGpuParams = {
   canvasRef: RefObject<HTMLCanvasElement>
   videoRef: RefObject<HTMLVideoElement>
   wgsl: WgslCode
@@ -191,7 +191,7 @@ async function initWebGPU({ canvasRef, videoRef, wgsl, frameRef }: InitWebGpuPar
     device.queue.writeBuffer(resolutionBuffer, 0, resolutionValue)
 
     const pipelineLayout = device.createPipelineLayout({
-      label: "Cell Pipeline Layout",
+      label: "Pipeline Layout",
       bindGroupLayouts: [bindGroupLayout],
     })
 

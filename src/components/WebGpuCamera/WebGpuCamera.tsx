@@ -34,7 +34,7 @@ const WebGpuCamera = () => {
 
   useWebGpuCam({ videoRef, canvasRef, wgsl: shaders[filter] })
 
-  const vidoeStyle = { width: "640px", height: "480px", margin: "20px" }
+  const canvasStyle = { width: "640px", height: "480px", margin: "20px" }
 
   return (
     <div className={style.web_gpu_camera_wrapper}>
@@ -46,7 +46,7 @@ const WebGpuCamera = () => {
         playsInline
         muted
       ></video>
-      <canvas style={vidoeStyle} ref={canvasRef}></canvas>
+      <canvas style={canvasStyle} ref={canvasRef}></canvas>
     </div>
   )
 }
