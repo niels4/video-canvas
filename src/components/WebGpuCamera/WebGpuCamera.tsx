@@ -47,6 +47,11 @@ const WebGpuCamera = () => {
         muted
       ></video>
       <canvas style={canvasStyle} ref={canvasRef}></canvas>
+      <p className={style.privacy_notice}>
+        None of the data from your webcam is ever transmitted or saved. The video processing takes place
+        entirely in your browser. The webcamera is used as a video source to demonstrate that the video
+        processing is happening in real-time.
+      </p>
     </div>
   )
 }
