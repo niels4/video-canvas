@@ -5,9 +5,9 @@
 This project was created to be a short tech demo to explore real-time video processing in the browser. Normally I wouldn't use Next.js for a client side application with such a small scope, but I wanted to include some code samples that demonstrate my
 ability to work with Next.js and Typescript. The tool captures video from the user's webcam and applies various shader effects in real-time. The available effects include passthrough, greyscale, sepia, and edge detection.
 
-## Published Example
+## Published Demo
 
-You can view a running example published at [https://niels4.dev/video-canvas](https://niels4.dev/video-canvas)
+You can view a running demo published at [https://niels4.dev/video-canvas](https://niels4.dev/video-canvas)
 
 None of the data from your webcam is ever transmitted or saved. The video processing takes place entirely in your browser. The webcamera is used as a video source to demonstrate that the video processing is happening in real-time.
 
@@ -29,16 +29,15 @@ None of the data from your webcam is ever transmitted or saved. The video proces
 
 ### Prerequisites
 
-- Node.js (>= 14.x)
-- npm (>= 6.x)
+- Node.js
 
 ### Installation
 
 1. Clone the repository:
 
     ```sh
-        git clone https://github.com/yourusername/webgpu-video-processing-tool.git
-        cd webgpu-video-processing-tool
+        git clone https://github.com/niels4/video-canvas
+        cd video-canvas
     ```
 
 2. Install the dependencies:
@@ -59,18 +58,16 @@ None of the data from your webcam is ever transmitted or saved. The video proces
 
 ### Project Structure
 
-- `pages/`: Contains the Next.js pages.
-  - `index.tsx`: The main page component with the video processing tool.
-  - `components/`: Contains the React components.
-    - `FilterSelect.tsx`: A component for selecting the shader effect.
-    - `shaders/`: Contains the WGSL shader files.
-      - `passthrough.wgsl`
-        - `greyscale.wgsl`
-          - `sepia.wgsl`
-            - `edgeDetect.wgsl`
-            - `next.config.js`: Configuration file for Next.js and Webpack.
-            - `public/`: Static assets.
-            - `styles/`: Global styles.
+This is a simple project that contains only one component.
+
+The `WebGPUCamera.tsx` file sets up the shader select dropdown, the webcam video element, and the webGPU canvas element. The `useWebGpuCam` hook
+wires everything up by passing the webcam output to the webGPU context and uses the specified shader to modify the output shown on screen.
+
+The shaders are defined in WGSL files in the `components/WebGPUCamera/shaders/` directory. They are split out
+into their own files with a .wgsl extension to make them easier to work with in a text editor. In `shaders.ts`, each file is read in as a string
+and added to a `shaders` object. A `ShaderKey` type is exported to make working with this object more type safe.
+
+### Example WGSL file (greyscale)
 
 ```wgsl
 struct VertexInput {
@@ -119,8 +116,8 @@ fn fragmentMain(input: FragmentInput) -> @location(0) vec4f {
 To add a new shader effect:
 
 1. Create a new WGSL file in the `shaders/` directory.
-2. Define your shader code in the new file.
-3. Import the new shader in your TypeScript files and add it to the `shaders` object in the `shaders.ts` file.
+2. Import the new shader in your TypeScript files and add it to the `shaders` object in the `shaders.ts` file.
+3. Add an option for this shader to the select dropdown in `WebGPUCamera.tsx`
 
 ### License
 
