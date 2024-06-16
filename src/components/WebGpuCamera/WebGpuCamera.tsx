@@ -36,6 +36,8 @@ const FilterSelect = ({ filter, setFilter }: FilterSelectProps) => {
         <option value="passthrough">Passthrough</option>
         <option value="greyscale">Greyscale</option>
         <option value="sepia">Sepia</option>
+        <option value="invert">Invert Colors</option>
+        <option value="gaussianBlur">Gaussian Blur</option>
         <option value="edgeDetect">Edge Detect</option>
       </select>
     </div>
