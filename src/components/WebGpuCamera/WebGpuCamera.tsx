@@ -39,6 +39,9 @@ const FilterSelect = ({ filter, setFilter }: FilterSelectProps) => {
         <option value="invert">Invert Colors</option>
         <option value="gaussianBlur">Gaussian Blur</option>
         <option value="edgeDetect">Edge Detect</option>
+        <option value="protanopia">Protanopia Correction</option>
+        <option value="deuteranopia">Deuteranopia Correction</option>
+        <option value="tritanopia">Tritanopia Correction</option>
       </select>
     </div>
   )

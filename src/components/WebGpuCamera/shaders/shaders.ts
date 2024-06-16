@@ -10,6 +10,12 @@ import edgeDetect from "./edgeDetect.wgsl"
 import invert from "./invert.wgsl"
 // @ts-ignore
 import gaussianBlur from "./gaussianBlur.wgsl"
+// @ts-ignore
+import protanopia from "./protanopia.wgsl"
+// @ts-ignore
+import deuteranopia from "./deuteranopia.wgsl"
+// @ts-ignore
+import tritanopia from "./tritanopia.wgsl"
 
 export const shaders: { [key: string]: string } = {
   passthrough,
@@ -18,6 +24,9 @@ export const shaders: { [key: string]: string } = {
   invert,
   gaussianBlur,
   edgeDetect,
+  protanopia,
+  deuteranopia,
+  tritanopia,
 } as const
 
 export type ShaderKey = keyof typeof shaders
