@@ -24,6 +24,15 @@ fn vertexMain(input: VertexInput) -> VertexOutput {
 @group(0) @binding(2) var mySampler: sampler;
 @group(0) @binding(3) var myTexture: texture_external;
 
+fn applyContrast(color: vec3f, contrast: f32) -> vec3f {
+    return (color - 0.5) * contrast + 0.5;
+}
+
+fn increaseSaturation(color: vec3f, amount: f32) -> vec3f {
+    let gray = dot(color, vec3f(0.299, 0.587, 0.114)); // Luminance
+    return mix(vec3f(gray), color, amount);
+}
+
 @fragment
 fn fragmentMain(input: FragmentInput) -> @location(0) vec4f {
     var uv = input.clipSpaceCoord.xy / 2.0 + 0.5;
@@ -31,9 +40,17 @@ fn fragmentMain(input: FragmentInput) -> @location(0) vec4f {
     uv.y = 1.0 - uv.y;
     let texColor = textureSampleBaseClampToEdge(myTexture, mySampler, uv);
 
-    let newRed = 0.625 * texColor.r + 0.375 * texColor.g;
-    let newGreen = 0.7 * texColor.r + 0.3 * texColor.g;
-    let newBlue = texColor.b;
+    // Deuteranopia color adjustment
+    var newRed = 0.625 * texColor.r + 0.375 * texColor.g;
+    var newGreen = 0.7 * texColor.r + 0.3 * texColor.g;
+    var newBlue = texColor.b;
 
-    return vec4f(newRed, newGreen, newBlue, texColor.a);
+    // Apply contrast enhancement
+    let contrast = 1.5; // Higher contrast factor
+    let enhancedColor = applyContrast(vec3f(newRed, newGreen, newBlue), contrast);
+
+    // Increase saturation
+    let saturatedColor = increaseSaturation(enhancedColor, 1.5); // High saturation amount
+
+    return vec4f(saturatedColor, texColor.a);
 }
