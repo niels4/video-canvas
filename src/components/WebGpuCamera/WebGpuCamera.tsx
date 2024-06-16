@@ -1,8 +1,23 @@
 "use client"
 import style from "./WebGpuCamera.module.css"
-import { Dispatch, SetStateAction, useRef, useState } from "react"
+import { Dispatch, SetStateAction, useEffect, useRef, useState } from "react"
 import { useWebGpuCam } from "./useWebGpuCam"
 import { ShaderKey, shaders } from "./shaders/shaders"
+
+const ErrorMessage = () => {
+  return (
+    <div>
+      <h2 className={style.error_header}>Your browser does not support WebGPU.</h2>
+      <p>
+        Visit{" "}
+        <a target="_blank" href="https://caniuse.com/webgpu">
+          caniuse.com/webgpu
+        </a>{" "}
+        to see a list of currently supported web browsers.
+      </p>
+    </div>
+  )
+}
 
 type FilterSelectProps = {
   filter: ShaderKey
@@ -31,13 +46,17 @@ const WebGpuCamera = () => {
   const [filter, setFilter] = useState<ShaderKey>("passthrough")
   const videoRef = useRef<HTMLVideoElement>(null)
   const canvasRef = useRef<HTMLCanvasElement>(null)
+  const [webGpuSupported, setWebGpuSupported] = useState(true)
+  useEffect(() => {
+    setWebGpuSupported(navigator.gpu != null)
+  }, [])
 
   useWebGpuCam({ videoRef, canvasRef, wgsl: shaders[filter] })
 
   const canvasStyle = { width: "640px", height: "480px", margin: "20px" }
 
   return (
-    <div className={style.web_gpu_camera_wrapper}>
+    <div className={style.web_gpu_camera_wrapper} suppressHydrationWarning={true}>
       <FilterSelect {...{ filter, setFilter }} />
       <video
         style={{ visibility: "hidden", position: "absolute" }}
@@ -47,6 +66,7 @@ const WebGpuCamera = () => {
         muted
       ></video>
       <canvas style={canvasStyle} ref={canvasRef}></canvas>
+      {!webGpuSupported ? <ErrorMessage /> : null}
       <p className={style.privacy_notice}>
         None of the data from your webcam is ever transmitted or saved. The video processing takes place
         entirely in your browser. The webcamera is used as a video source to demonstrate that the video

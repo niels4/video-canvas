@@ -247,7 +247,7 @@ async function initWebGPU({ canvasRef, videoRef, wgsl, frameRef }: InitWebGpuPar
 }
 
 async function initWebCam(videoRef: RefObject<HTMLVideoElement>) {
-  if (!videoRef.current) return
+  if (!videoRef.current || !navigator.gpu) return
   const video = videoRef.current
 
   try {
