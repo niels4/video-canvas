@@ -16,7 +16,7 @@ None of the data from your webcam is ever transmitted or saved. The video proces
 - Real-time video capture from the user's webcam.
 - WebGPU-based shader processing for video effects.
 - Dynamic shader effect selection through a React-based UI.
-- Four shader effects: passthrough, greyscale, sepia, and edge detection.
+- Filters include edge detection, guassian blur, and color correction to add contrast for users with different forms of colorblindness.
 
 ## Technologies Used
 
